@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template_string, make_response
+from markupsafe import escape
 
 app = Flask(__name__)
 
@@ -6,7 +7,7 @@ app = Flask(__name__)
 def hello():
     name = request.args.get('name', 'Guest')
     
-    return f"<h1>Hello, {name}!</h1>"
+    return f"<h1>Hello, {escape(name)}!</h1>"
 
 @app.route('/comment', methods=['POST'])
 def post_comment():
