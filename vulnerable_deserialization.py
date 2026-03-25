@@ -2,6 +2,7 @@ import pickle
 import yaml
 import marshal
 from flask import Flask, request
+from markupsafe import escape
 
 app = Flask(__name__)
 
@@ -11,7 +12,7 @@ def load_data():
     
     obj = pickle.loads(data)
     
-    return str(obj)
+    return str(escape(str(obj)))
 
 @app.route('/session', methods=['POST'])
 def restore_session():
