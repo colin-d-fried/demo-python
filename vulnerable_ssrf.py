@@ -1,5 +1,6 @@
 import requests
 from flask import Flask, request
+from markupsafe import escape
 import urllib.request
 
 app = Flask(__name__)
@@ -10,7 +11,7 @@ def fetch_url():
     
     response = requests.get(url)
     
-    return response.text
+    return str(escape(response.text))
 
 @app.route('/proxy')
 def proxy_request():
