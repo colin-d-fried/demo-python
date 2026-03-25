@@ -25,10 +25,10 @@ def post_comment():
 
 @app.route('/search')
 def search():
+    from markupsafe import escape
     query = request.args.get('q', '')
-    
-    template = f"<h1>Search results for: {query}</h1>"
-    return render_template_string(template)
+
+    return render_template_string("<h1>Search results for: {{ query }}</h1>", query=query)
 
 @app.route('/profile')
 def profile():
