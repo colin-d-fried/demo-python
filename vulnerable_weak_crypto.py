@@ -7,7 +7,7 @@ def hash_password_weak(password):
     return hashlib.md5(password.encode()).hexdigest()
 
 def hash_with_sha1(data):
-    return hashlib.sha1(data.encode()).hexdigest()
+    return hashlib.sha256(data.encode()).hexdigest()
 
 def encrypt_data_des(data, key):
     cipher = DES.new(key, DES.MODE_ECB)
