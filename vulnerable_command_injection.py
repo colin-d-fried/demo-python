@@ -30,8 +30,10 @@ def backup():
     return "Backup completed"
 
 def process_file(user_input):
-    cmd = f"grep 'pattern' {user_input}"
-    subprocess.run(cmd, shell=True, capture_output=True)
+    safe_path = os.path.realpath(user_input)
+    if not os.path.isfile(safe_path):
+        return None
+    subprocess.run(["grep", "pattern", safe_path], capture_output=True)
 
 def convert_file(input_file):
     os.popen(f"convert {input_file} output.pdf").read()
