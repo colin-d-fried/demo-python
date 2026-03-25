@@ -15,10 +15,14 @@ def load_data():
 
 @app.route('/session', methods=['POST'])
 def restore_session():
+    import json
     session_data = request.form.get('session')
-    
-    session = pickle.loads(session_data.encode())
-    
+
+    try:
+        session = json.loads(session_data)
+    except (json.JSONDecodeError, TypeError):
+        return "Invalid session data", 400
+
     return f"Session restored: {session}"
 
 def load_config(config_data):
