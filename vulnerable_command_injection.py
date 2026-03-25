@@ -34,7 +34,11 @@ def process_file(user_input):
     subprocess.run(cmd, shell=True, capture_output=True)
 
 def convert_file(input_file):
-    os.popen(f"convert {input_file} output.pdf").read()
+    safe_path = os.path.realpath(input_file)
+    if not os.path.isfile(safe_path):
+        return None
+    result = subprocess.run(["convert", safe_path, "output.pdf"], capture_output=True)
+    return result.stdout
 
 if __name__ == '__main__':
     app.run(debug=True)
