@@ -34,11 +34,15 @@ def load_user_preferences(pref_string):
 
 @app.route('/import', methods=['POST'])
 def import_data():
+    import json
     import_file = request.files['file']
     content = import_file.read()
-    
-    data = pickle.loads(content)
-    
+
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return "Invalid data format", 400
+
     return f"Imported: {data}"
 
 def process_yaml(yaml_content):
