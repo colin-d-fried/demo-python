@@ -25,8 +25,8 @@ def generate_token():
     return token
 
 def create_session_id():
-    import time
-    return hashlib.md5(str(time.time()).encode()).hexdigest()
+    import secrets
+    return secrets.token_hex(32)
 
 def weak_random_key():
     random.seed(12345)
