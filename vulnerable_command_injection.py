@@ -21,12 +21,17 @@ def execute_command():
     
     return "Command executed"
 
+ALLOWED_BACKUP_PATHS = {'/default/backup', '/var/data/backup'}
+
 @app.route('/backup')
 def backup():
     backup_path = request.form.get('path', '/default/backup')
-    
-    subprocess.call("tar -czf backup.tar.gz " + backup_path, shell=True)
-    
+
+    if backup_path not in ALLOWED_BACKUP_PATHS:
+        return "Backup path not allowed", 400
+
+    subprocess.run(["tar", "-czf", "backup.tar.gz", backup_path], check=True)
+
     return "Backup completed"
 
 def process_file(user_input):
