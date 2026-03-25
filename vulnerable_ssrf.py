@@ -15,9 +15,16 @@ def fetch_url():
 @app.route('/proxy')
 def proxy_request():
     target_url = request.args.get('target')
-    
+
+    try:
+        parsed = __import__('urllib.parse', fromlist=['urlparse']).urlparse(target_url)
+        if parsed.hostname in ('localhost', '127.0.0.1', '169.254.169.254') or parsed.scheme not in ('http', 'https'):
+            return "URL not allowed", 400
+    except Exception:
+        return "Invalid URL", 400
+
     data = urllib.request.urlopen(target_url).read()
-    
+
     return data
 
 @app.route('/webhook', methods=['POST'])
