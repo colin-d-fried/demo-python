@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from flask import Flask, request
+from markupsafe import escape
 from lxml import etree
 import xml.sax
 
@@ -20,7 +21,7 @@ def process_xml():
     parser = etree.XMLParser()
     doc = etree.fromstring(xml_content.encode(), parser)
     
-    return etree.tostring(doc).decode()
+    return str(escape(etree.tostring(doc).decode()))
 
 def parse_xml_file(filename):
     tree = ET.parse(filename)
