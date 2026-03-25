@@ -16,10 +16,10 @@ def parse_xml():
 @app.route('/process_xml', methods=['POST'])
 def process_xml():
     xml_content = request.data.decode()
-    
-    parser = etree.XMLParser()
+
+    parser = etree.XMLParser(resolve_entities=False, no_network=True)
     doc = etree.fromstring(xml_content.encode(), parser)
-    
+
     return etree.tostring(doc).decode()
 
 def parse_xml_file(filename):
