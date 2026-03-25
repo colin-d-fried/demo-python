@@ -22,10 +22,16 @@ def read_file():
 @app.route('/view')
 def view_document():
     doc = request.args.get('doc')
-    path = f"/documents/{doc}"
-    
-    with open(path) as file:
-        return file.read()
+    path = os.path.realpath(os.path.join("/documents/", doc))
+
+    if not path.startswith('/documents/'):
+        return "Access denied", 403
+
+    try:
+        with open(path) as file:
+            return file.read()
+    except FileNotFoundError:
+        return "Document not found", 404
 
 def load_template(template_name):
     template_path = "../templates/" + template_name
