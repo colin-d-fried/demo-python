@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from flask import Flask, request
 from lxml import etree
 import xml.sax
