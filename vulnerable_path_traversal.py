@@ -51,4 +51,4 @@ def serve_image():
     return send_file(img_path)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
