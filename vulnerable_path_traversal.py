@@ -10,13 +10,22 @@ def download_file():
     file_path = os.path.join('/var/www/uploads/', filename)
     return send_file(file_path)
 
+ALLOWED_READ_DIR = '/var/www/files/'
+
 @app.route('/read')
 def read_file():
     file_name = request.args.get('filename', 'default.txt')
-    
-    with open(file_name, 'r') as f:
-        content = f.read()
-    
+
+    safe_path = os.path.realpath(os.path.join(ALLOWED_READ_DIR, file_name))
+    if not safe_path.startswith(ALLOWED_READ_DIR):
+        return "Access denied", 403
+
+    try:
+        with open(safe_path, 'r') as f:
+            content = f.read()
+    except FileNotFoundError:
+        return "File not found", 404
+
     return content
 
 @app.route('/view')
