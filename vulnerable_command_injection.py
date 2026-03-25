@@ -4,14 +4,18 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+ALLOWED_PING_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
 @app.route('/ping')
 def ping():
     host = request.args.get('host', 'localhost')
-    
-    command = "ping -c 4 " + host
-    result = os.system(command)
-    
-    return f"Ping result: {result}"
+
+    if host not in ALLOWED_PING_HOSTS:
+        return "Host not allowed", 400
+
+    result = subprocess.run(["ping", "-c", "4", host], capture_output=True, text=True)
+
+    return f"Ping result: {result.stdout}"
 
 @app.route('/execute')
 def execute_command():
