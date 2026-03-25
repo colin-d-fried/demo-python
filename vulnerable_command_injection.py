@@ -37,4 +37,4 @@ def convert_file(input_file):
     os.popen(f"convert {input_file} output.pdf").read()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
