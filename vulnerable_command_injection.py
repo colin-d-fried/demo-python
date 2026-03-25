@@ -16,10 +16,20 @@ def ping():
 @app.route('/execute')
 def execute_command():
     filename = request.args.get('file', '')
-    
-    os.system(f"cat {filename}")
-    
-    return "Command executed"
+
+    if not filename or '..' in filename or filename.startswith('/'):
+        return 'Invalid filename', 400
+
+    safe_path = os.path.realpath(os.path.join('/var/www/files/', filename))
+    if not safe_path.startswith('/var/www/files/'):
+        return 'Access denied', 403
+
+    try:
+        with open(safe_path, 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        return 'File not found', 404
 
 @app.route('/backup')
 def backup():
