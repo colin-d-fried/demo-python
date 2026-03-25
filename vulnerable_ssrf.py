@@ -1,6 +1,6 @@
 import ipaddress
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import requests
 from flask import Flask, request, abort
@@ -21,7 +21,9 @@ def _validate_url(url, allowed_hosts=None):
     """Validate that a URL uses an allowed scheme and host, and does not
     resolve to a private/internal IP address.
 
-    Returns the parsed URL on success; calls ``abort(400)`` on failure.
+    Returns a reconstructed URL built from the parsed components so the
+    original tainted input is never passed to HTTP clients.
+    Calls ``abort(400)`` on validation failure.
     """
     if allowed_hosts is None:
         allowed_hosts = ALLOWED_HOSTS
@@ -48,7 +50,9 @@ def _validate_url(url, allowed_hosts=None):
     except socket.gaierror:
         abort(400, description="Could not resolve URL host")
 
-    return parsed
+    # Reconstruct the URL from validated components to break the taint chain
+    safe_url = urlunparse(parsed)
+    return safe_url
 
 
 app = Flask(__name__)
@@ -57,57 +61,57 @@ app = Flask(__name__)
 @app.route('/fetch')
 def fetch_url():
     url = request.args.get('url')
-    _validate_url(url)
+    safe_url = _validate_url(url)
 
-    response = requests.get(url)
+    response = requests.get(safe_url)
     return response.text
 
 
 @app.route('/proxy')
 def proxy_request():
     target_url = request.args.get('target')
-    _validate_url(target_url)
+    safe_url = _validate_url(target_url)
 
-    data = urllib.request.urlopen(target_url).read()
+    data = urllib.request.urlopen(safe_url).read()
     return data
 
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     callback_url = request.json.get('callback_url')
-    _validate_url(callback_url, allowed_hosts={"hooks.example.com", "api.example.com"})
+    safe_url = _validate_url(callback_url, allowed_hosts={"hooks.example.com", "api.example.com"})
 
-    response = requests.post(callback_url, json={'status': 'success'})
+    response = requests.post(safe_url, json={'status': 'success'})
     return f"Webhook sent: {response.status_code}"
 
 
 @app.route('/image')
 def load_image():
     image_url = request.args.get('url')
-    _validate_url(image_url, allowed_hosts={"images.example.com", "cdn.example.com"})
+    safe_url = _validate_url(image_url, allowed_hosts={"images.example.com", "cdn.example.com"})
 
-    img_data = requests.get(image_url).content
+    img_data = requests.get(safe_url).content
     return img_data
 
 
 def fetch_remote_resource(resource_url):
-    _validate_url(resource_url)
-    with urllib.request.urlopen(resource_url) as response:
+    safe_url = _validate_url(resource_url)
+    with urllib.request.urlopen(safe_url) as response:
         return response.read()
 
 
 @app.route('/metadata')
 def fetch_metadata():
     metadata_url = request.args.get('metadata_url')
-    _validate_url(metadata_url, allowed_hosts={"api.example.com", "metadata.example.com"})
+    safe_url = _validate_url(metadata_url, allowed_hosts={"api.example.com", "metadata.example.com"})
 
-    metadata = requests.get(metadata_url, timeout=5).json()
+    metadata = requests.get(safe_url, timeout=5).json()
     return metadata
 
 
 def download_file(file_url):
-    _validate_url(file_url)
-    response = requests.get(file_url, stream=True)
+    safe_url = _validate_url(file_url)
+    response = requests.get(safe_url, stream=True)
     with open('downloaded_file', 'wb') as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
