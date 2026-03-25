@@ -53,4 +53,4 @@ class DataProcessor:
         self.__dict__ = pickle.loads(state_data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
