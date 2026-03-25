@@ -1,15 +1,30 @@
 import requests
 from flask import Flask, request
 import urllib.request
+from urllib.parse import urlparse
+
+ALLOWED_HOSTS = {"api.example.com", "cdn.example.com", "images.example.com"}
+
+def is_url_allowed(url):
+    try:
+        parsed = urlparse(url)
+        if parsed.hostname in ALLOWED_HOSTS and parsed.scheme in ('http', 'https'):
+            return True
+    except Exception:
+        pass
+    return False
 
 app = Flask(__name__)
 
 @app.route('/fetch')
 def fetch_url():
     url = request.args.get('url')
-    
+
+    if not is_url_allowed(url):
+        return "URL not allowed", 400
+
     response = requests.get(url)
-    
+
     return response.text
 
 @app.route('/proxy')
