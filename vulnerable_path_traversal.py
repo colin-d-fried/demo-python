@@ -46,8 +46,12 @@ def get_user_file(user_id, filename):
 @app.route('/image')
 def serve_image():
     img_name = request.args.get('name')
-    img_path = "./static/images/" + img_name
-    
+    base_dir = os.path.realpath("./static/images/")
+    img_path = os.path.realpath(os.path.join(base_dir, img_name))
+
+    if not img_path.startswith(base_dir):
+        return "Access denied", 403
+
     return send_file(img_path)
 
 if __name__ == '__main__':
