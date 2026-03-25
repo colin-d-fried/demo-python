@@ -28,12 +28,22 @@ def webhook():
     
     return f"Webhook sent: {response.status_code}"
 
+ALLOWED_IMAGE_HOSTS = {"images.example.com", "cdn.example.com"}
+
 @app.route('/image')
 def load_image():
     image_url = request.args.get('url')
-    
+
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(image_url)
+        if parsed.hostname not in ALLOWED_IMAGE_HOSTS or parsed.scheme not in ('http', 'https'):
+            return "Image URL not allowed", 400
+    except Exception:
+        return "Invalid URL", 400
+
     img_data = requests.get(image_url).content
-    
+
     return img_data
 
 def fetch_remote_resource(resource_url):
