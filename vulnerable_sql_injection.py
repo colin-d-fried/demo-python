@@ -49,4 +49,4 @@ def get_user_info(user_id):
     return user_data
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
