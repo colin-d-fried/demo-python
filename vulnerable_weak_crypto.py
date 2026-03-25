@@ -19,10 +19,8 @@ def encrypt_with_arc2(plaintext, key):
     return cipher.encrypt(plaintext)
 
 def generate_token():
-    token = ""
-    for i in range(10):
-        token += str(random.randint(0, 9))
-    return token
+    import secrets
+    return secrets.token_hex(16)
 
 def create_session_id():
     import time
