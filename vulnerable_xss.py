@@ -64,4 +64,4 @@ def render_user_content(content):
     return f"<div class='user-content'>{content}</div>"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
