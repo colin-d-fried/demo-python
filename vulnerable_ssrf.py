@@ -20,12 +20,22 @@ def proxy_request():
     
     return data
 
+ALLOWED_WEBHOOK_HOSTS = {"hooks.example.com", "api.example.com"}
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     callback_url = request.json.get('callback_url')
-    
+
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(callback_url)
+        if parsed.hostname not in ALLOWED_WEBHOOK_HOSTS or parsed.scheme not in ('http', 'https'):
+            return "Callback URL not allowed", 400
+    except Exception:
+        return "Invalid callback URL", 400
+
     response = requests.post(callback_url, json={'status': 'success'})
-    
+
     return f"Webhook sent: {response.status_code}"
 
 @app.route('/image')
