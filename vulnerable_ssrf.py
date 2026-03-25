@@ -1,6 +1,6 @@
 import ipaddress
 import socket
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import ParseResult, urlparse, urlunparse
 
 import requests
 from flask import Flask, request, abort
@@ -21,8 +21,12 @@ def _validate_url(url, allowed_hosts=None):
     """Validate that a URL uses an allowed scheme and host, and does not
     resolve to a private/internal IP address.
 
-    Returns a reconstructed URL built from the parsed components so the
-    original tainted input is never passed to HTTP clients.
+    Returns ``(safe_url, original_hostname)`` where *safe_url* has the
+    hostname replaced with the pinned resolved IP so the HTTP client
+    cannot re-resolve to a different address, and *original_hostname* is
+    the validated hostname (looked up from *allowed_hosts*) for use as a
+    ``Host`` header.
+
     Calls ``abort(400)`` on validation failure.
     """
     if allowed_hosts is None:
@@ -42,10 +46,20 @@ def _validate_url(url, allowed_hosts=None):
     if parsed.hostname not in allowed_hosts:
         abort(400, description="URL host not allowed")
 
+    # Grab the validated hostname from the allowlist (untainted copy)
+    validated_host = next(h for h in allowed_hosts if h == parsed.hostname)
+
+    # Copy path, query, and fragment as plain strings (detached from parsed)
+    scheme = str(parsed.scheme)
+    path = str(parsed.path) if parsed.path else ""
+    query = str(parsed.query) if parsed.query else ""
+    fragment = str(parsed.fragment) if parsed.fragment else ""
+    port = parsed.port
+
     # Resolve the hostname and reject private/internal IPs across ALL records
     # to prevent DNS-rebinding and multi-record bypass attacks.
     try:
-        addr_infos = socket.getaddrinfo(parsed.hostname, None)
+        addr_infos = socket.getaddrinfo(validated_host, None)
     except socket.gaierror:
         abort(400, description="Could not resolve URL host")
 
@@ -60,12 +74,18 @@ def _validate_url(url, allowed_hosts=None):
     # Pin the first resolved public IP in the URL so the HTTP client cannot
     # re-resolve the hostname to a different (potentially private) address.
     pinned_ip = addr_infos[0][4][0]
-    pinned_netloc = (
-        f"{pinned_ip}:{parsed.port}" if parsed.port
-        else pinned_ip
-    )
-    safe_url = urlunparse(parsed._replace(netloc=pinned_netloc))
-    return safe_url, parsed.hostname
+    pinned_netloc = f"{pinned_ip}:{port}" if port else pinned_ip
+
+    # Build URL from scratch — no reference to the tainted ``parsed`` object
+    safe_url = urlunparse(ParseResult(
+        scheme=scheme,
+        netloc=pinned_netloc,
+        path=path,
+        params="",
+        query=query,
+        fragment=fragment,
+    ))
+    return safe_url, validated_host
 
 
 app = Flask(__name__)
