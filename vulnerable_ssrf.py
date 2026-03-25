@@ -40,12 +40,22 @@ def fetch_remote_resource(resource_url):
     with urllib.request.urlopen(resource_url) as response:
         return response.read()
 
+ALLOWED_METADATA_HOSTS = {"api.example.com", "metadata.example.com"}
+
 @app.route('/metadata')
 def fetch_metadata():
     metadata_url = request.args.get('metadata_url')
-    
+
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(metadata_url)
+        if parsed.hostname not in ALLOWED_METADATA_HOSTS or parsed.scheme not in ('http', 'https'):
+            return "Metadata URL not allowed", 400
+    except Exception:
+        return "Invalid URL", 400
+
     metadata = requests.get(metadata_url, timeout=5).json()
-    
+
     return metadata
 
 def download_file(file_url):
