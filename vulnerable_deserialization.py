@@ -7,10 +7,14 @@ app = Flask(__name__)
 
 @app.route('/load', methods=['POST'])
 def load_data():
+    import json
     data = request.data
-    
-    obj = pickle.loads(data)
-    
+
+    try:
+        obj = json.loads(data)
+    except json.JSONDecodeError:
+        return "Invalid JSON data", 400
+
     return str(obj)
 
 @app.route('/session', methods=['POST'])
