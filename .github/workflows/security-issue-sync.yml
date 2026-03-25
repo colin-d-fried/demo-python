@@ -1,0 +1,106 @@
+name: "Security Issue Sync"
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Weekly on Monday at 9:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  sync-alerts-to-issues:
+    name: Sync CodeQL Alerts to GitHub Issues
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      security-events: read
+
+    steps:
+      - name: Sync alerts to issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Fetch all open code scanning alerts
+            let alerts = [];
+            try {
+              const response = await github.paginate(
+                github.rest.codeScanning.listAlertsForRepo,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
+                  per_page: 100
+                }
+              );
+              alerts = response;
+            } catch (error) {
+              core.setFailed(`Failed to fetch code scanning alerts: ${error.message}`);
+              return;
+            }
+
+            core.info(`Found ${alerts.length} open code scanning alert(s)`);
+
+            for (const alert of alerts) {
+              const alertLabel = `codeql-alert-${alert.number}`;
+              const severity = alert.rule.security_severity_level || alert.rule.severity || 'unknown';
+              const severityLabel = `severity:${severity}`;
+              const description = alert.rule.description || 'No description';
+              const filePath = alert.most_recent_instance?.location?.path || 'unknown';
+              const startLine = alert.most_recent_instance?.location?.start_line || 'N/A';
+              const alertUrl = alert.html_url;
+
+              // Extract CWE tags from the alert rule
+              const cweTags = (alert.rule.tags || [])
+                .filter(tag => tag.startsWith('cwe-') || tag.startsWith('external/cwe/'))
+                .map(tag => tag.replace('external/cwe/', ''))
+                .join(', ');
+
+              // Check if an issue already exists for this alert
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: alertLabel,
+                state: 'all',
+                per_page: 1
+              });
+
+              if (existingIssues.data.length > 0) {
+                core.info(`Issue already exists for alert #${alert.number}, skipping`);
+                continue;
+              }
+
+              // Create a new issue for this alert
+              const issueBody = [
+                `## CodeQL Security Alert #${alert.number}`,
+                '',
+                `**Severity:** ${severity}`,
+                `**Rule:** ${alert.rule.id}`,
+                `**Description:** ${description}`,
+                '',
+                `### Location`,
+                `- **File:** \`${filePath}\``,
+                `- **Line:** ${startLine}`,
+                '',
+                cweTags ? `### CWE Tags\n${cweTags}\n` : '',
+                `### Alert Link`,
+                `[View alert on GitHub](${alertUrl})`,
+                '',
+                '---',
+                '*This issue was automatically created by the Security Issue Sync workflow.*'
+              ].filter(Boolean).join('\n');
+
+              const labels = ['security', severityLabel, alertLabel];
+
+              try {
+                const issue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `[CodeQL] ${description}`,
+                  body: issueBody,
+                  labels: labels
+                });
+                core.info(`Created issue #${issue.data.number} for alert #${alert.number}`);
+              } catch (error) {
+                core.warning(`Failed to create issue for alert #${alert.number}: ${error.message}`);
+              }
+            }
+
+            core.info('Security issue sync completed');

@@ -1,0 +1,8 @@
+flask
+requests
+boto3
+sqlalchemy
+pycryptodome
+lxml
+pyyaml
+defusedxml
