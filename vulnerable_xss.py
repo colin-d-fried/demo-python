@@ -32,8 +32,9 @@ def search():
 
 @app.route('/profile')
 def profile():
-    username = request.args.get('user', 'Anonymous')
-    bio = request.args.get('bio', '')
+    from markupsafe import escape
+    username = escape(request.args.get('user', 'Anonymous'))
+    bio = escape(request.args.get('bio', ''))
     
     page = f"""
     <html>
