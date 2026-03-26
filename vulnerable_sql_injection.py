@@ -29,8 +29,8 @@ def search():
     conn = sqlite3.connect('products.db')
     cursor = conn.cursor()
     
-    query = f"SELECT * FROM products WHERE name LIKE '%{search_term}%'"
-    cursor.execute(query)
+    query = "SELECT * FROM products WHERE name LIKE ?"
+    cursor.execute(query, (f"%{search_term}%",))
     
     results = cursor.fetchall()
     conn.close()
