@@ -49,7 +49,8 @@ def profile():
 
 @app.route('/error')
 def error_page():
-    error_msg = request.args.get('msg')
+    from markupsafe import escape
+    error_msg = escape(request.args.get('msg', ''))
     
     return f"<div class='error'>{error_msg}</div>"
 
