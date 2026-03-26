@@ -1,4 +1,4 @@
-import pickle
+import json
 import yaml
 import marshal
 from flask import Flask, request
@@ -9,7 +9,7 @@ app = Flask(__name__)
 def load_data():
     data = request.data
     
-    obj = pickle.loads(data)
+    obj = json.loads(data)
     
     return str(obj)
 
