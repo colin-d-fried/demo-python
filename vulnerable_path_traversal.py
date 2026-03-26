@@ -14,7 +14,11 @@ def download_file():
 def read_file():
     file_name = request.args.get('filename', 'default.txt')
     
-    with open(file_name, 'r') as f:
+    base_dir = os.path.realpath('/var/www/files/')
+    safe_path = os.path.realpath(os.path.join(base_dir, file_name))
+    if not safe_path.startswith(base_dir):
+        return 'Access denied', 403
+    with open(safe_path, 'r') as f:
         content = f.read()
     
     return content
