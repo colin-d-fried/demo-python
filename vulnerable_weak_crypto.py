@@ -4,7 +4,7 @@ from Crypto.Cipher import DES, ARC2, Blowfish
 from Crypto.Hash import MD5, SHA1
 
 def hash_password_weak(password):
-    return hashlib.md5(password.encode()).hexdigest()
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def hash_with_sha1(data):
     return hashlib.sha1(data.encode()).hexdigest()
