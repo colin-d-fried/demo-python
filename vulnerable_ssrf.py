@@ -1,5 +1,5 @@
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import urllib.request
 
 app = Flask(__name__)
@@ -46,7 +46,7 @@ def fetch_metadata():
     
     metadata = requests.get(metadata_url, timeout=5).json()
     
-    return metadata
+    return jsonify(metadata)
 
 def download_file(file_url):
     response = requests.get(file_url, stream=True)
