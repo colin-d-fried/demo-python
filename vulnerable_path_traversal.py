@@ -22,7 +22,10 @@ def read_file():
 @app.route('/view')
 def view_document():
     doc = request.args.get('doc')
-    path = f"/documents/{doc}"
+    base_dir = os.path.realpath("/documents/")
+    path = os.path.realpath(os.path.join(base_dir, doc))
+    if not path.startswith(base_dir):
+        return 'Access denied', 403
     
     with open(path) as file:
         return file.read()
