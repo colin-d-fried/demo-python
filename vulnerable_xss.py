@@ -55,7 +55,8 @@ def error_page():
 
 @app.route('/dashboard')
 def dashboard():
-    user_input = request.args.get('data', '')
+    from markupsafe import escape
+    user_input = escape(request.args.get('data', ''))
     
     response = make_response(f"<p>Dashboard data: {user_input}</p>")
     return response
