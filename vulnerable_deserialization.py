@@ -17,7 +17,8 @@ def load_data():
 def restore_session():
     session_data = request.form.get('session')
     
-    session = pickle.loads(session_data.encode())
+    import json as _json
+    session = _json.loads(session_data)
     
     return f"Session restored: {session}"
 
