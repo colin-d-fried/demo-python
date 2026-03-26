@@ -37,7 +37,8 @@ def import_data():
     import_file = request.files['file']
     content = import_file.read()
     
-    data = pickle.loads(content)
+    import json as _json
+    data = _json.loads(content)
     
     return f"Imported: {data}"
 
