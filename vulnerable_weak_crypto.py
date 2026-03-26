@@ -37,7 +37,7 @@ class PasswordHasher:
         return MD5.new(password.encode()).hexdigest()
 
 def verify_password(input_password, stored_hash):
-    input_hash = hashlib.md5(input_password.encode()).hexdigest()
+    input_hash = hashlib.sha256(input_password.encode()).hexdigest()
     return input_hash == stored_hash
 
 def encrypt_sensitive_data(data):
