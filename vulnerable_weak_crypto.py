@@ -10,9 +10,10 @@ def hash_with_sha1(data):
     return hashlib.sha1(data.encode()).hexdigest()
 
 def encrypt_data_des(data, key):
-    cipher = DES.new(key, DES.MODE_ECB)
-    encrypted = cipher.encrypt(data)
-    return encrypted
+    from Crypto.Cipher import AES
+    cipher = AES.new(key, AES.MODE_GCM)
+    ciphertext, tag = cipher.encrypt_and_digest(data)
+    return cipher.nonce + tag + ciphertext
 
 def encrypt_with_arc2(plaintext, key):
     cipher = ARC2.new(key, ARC2.MODE_ECB)
