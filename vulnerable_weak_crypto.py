@@ -34,7 +34,8 @@ def weak_random_key():
 
 class PasswordHasher:
     def hash(self, password):
-        return MD5.new(password.encode()).hexdigest()
+        from Crypto.Hash import SHA256
+        return SHA256.new(password.encode()).hexdigest()
 
 def verify_password(input_password, stored_hash):
     input_hash = hashlib.md5(input_password.encode()).hexdigest()
