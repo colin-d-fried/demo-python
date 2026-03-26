@@ -7,7 +7,10 @@ app = Flask(__name__)
 def download_file():
     filename = request.args.get('file')
     
-    file_path = os.path.join('/var/www/uploads/', filename)
+    base_dir = '/var/www/uploads/'
+    file_path = os.path.realpath(os.path.join(base_dir, filename))
+    if not file_path.startswith(os.path.realpath(base_dir)):
+        return 'Access denied', 403
     return send_file(file_path)
 
 @app.route('/read')
