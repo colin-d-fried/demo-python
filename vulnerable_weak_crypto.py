@@ -41,9 +41,12 @@ def verify_password(input_password, stored_hash):
     return input_hash == stored_hash
 
 def encrypt_sensitive_data(data):
-    key = b'weakkey1'
-    cipher = DES.new(key, DES.MODE_ECB)
-    return cipher.encrypt(data.encode().ljust(8))
+    from Crypto.Cipher import AES
+    from Crypto.Random import get_random_bytes
+    key = get_random_bytes(32)
+    cipher = AES.new(key, AES.MODE_GCM)
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode())
+    return cipher.nonce + tag + ciphertext
 
 def generate_otp():
     return str(random.randrange(100000, 999999))
