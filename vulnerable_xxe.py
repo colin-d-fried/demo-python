@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from flask import Flask, request
 from lxml import etree
+import defusedxml.lxml as defused_lxml
 import xml.sax
 
 app = Flask(__name__)
@@ -17,8 +18,7 @@ def parse_xml():
 def process_xml():
     xml_content = request.data.decode()
     
-    parser = etree.XMLParser()
-    doc = etree.fromstring(xml_content.encode(), parser)
+    doc = defused_lxml.fromstring(xml_content.encode())
     
     return etree.tostring(doc).decode()
 
