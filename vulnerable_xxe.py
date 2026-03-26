@@ -47,7 +47,8 @@ def upload_xml():
     xml_file = request.files['file']
     content = xml_file.read()
     
-    root = ET.fromstring(content)
+    import defusedxml.ElementTree as SafeET
+    root = SafeET.fromstring(content)
     
     return f"Uploaded: {root.tag}"
 
