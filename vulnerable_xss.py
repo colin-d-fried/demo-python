@@ -1,3 +1,4 @@
+from markupsafe import escape
 from flask import Flask, request, render_template_string, make_response
 
 app = Flask(__name__)
@@ -10,7 +11,7 @@ def hello():
 
 @app.route('/comment', methods=['POST'])
 def post_comment():
-    comment = request.form.get('comment', '')
+    comment = escape(request.form.get('comment', ''))
     
     html = f"""
     <html>
