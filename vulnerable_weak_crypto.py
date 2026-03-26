@@ -15,8 +15,10 @@ def encrypt_data_des(data, key):
     return encrypted
 
 def encrypt_with_arc2(plaintext, key):
-    cipher = ARC2.new(key, ARC2.MODE_ECB)
-    return cipher.encrypt(plaintext)
+    from Crypto.Cipher import AES
+    cipher = AES.new(key, AES.MODE_GCM)
+    ciphertext, tag = cipher.encrypt_and_digest(plaintext)
+    return cipher.nonce + tag + ciphertext
 
 def generate_token():
     token = ""
